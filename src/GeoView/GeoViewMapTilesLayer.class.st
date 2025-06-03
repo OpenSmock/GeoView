@@ -101,14 +101,14 @@ GeoViewMapTilesLayer >> allowSlideMoving: aBoolean [
 { #category : #'loading and updating' }
 GeoViewMapTilesLayer >> buildVMapLayerTiles: aVMapTilesXY buffer: aLargerVMapTilesXY level: aLevel [
 	
-	| findAtLeastOneTile vMapServerTiles context |
+	| findAtLeastOneTile vMapServerTiles |
 	
 	findAtLeastOneTile := false.
 	self surfaceMap ifNil:[^findAtLeastOneTile].
 	self surfaceMap offcenter: self mapOffcenter.
 	self surfaceMap position: currentGraphicProjection cartesianCenter.
 
-	context := self surfaceMap surface newContext.
+	"context := self surfaceMap surface newContext."
 
 	findAtLeastOneTile := self loadAndRenderTiles: aVMapTilesXY on: self surfaceMap offset: self mapOffcenter negated level: aLevel.
 	
@@ -205,7 +205,7 @@ GeoViewMapTilesLayer >> doLoadingTilesThread [
 		tilesXYBuffer := self getTilesXYForBuffer: centerGeoPoint level: level.
 		
 		findAtLeastOneTile := self buildVMapLayerTiles:  tilesXY buffer: tilesXYBuffer level: level.
-		Processor yield.
+		"Processor yield."
 	].
 	
 ]
