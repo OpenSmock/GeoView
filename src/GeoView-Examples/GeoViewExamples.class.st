@@ -15,6 +15,12 @@ GeoViewExamples class >> createAndStartTask: aBlockClosure [
 { #category : #private }
 GeoViewExamples class >> createGeoCircles: aQuantity [
 
+	^ self createGeoCircles: aQuantity do: nil
+]
+
+{ #category : #private }
+GeoViewExamples class >> createGeoCircles: aQuantity do: aBlock [
+
 	| list random nb |
 	list := OrderedCollection new.
 	random := Random new.
@@ -27,6 +33,7 @@ GeoViewExamples class >> createGeoCircles: aQuantity [
 		object strokeStyle: (Color random asSmockStrokeStyle).
 		object absoluteCoordinates: AbsoluteCoordinates random.
 		object radiusInMeters: (random next * 100000).
+		aBlock ifNotNil: [ :b | b value: object ].
 		list add: object.
 	].
 
@@ -486,6 +493,119 @@ GeoViewExamples class >> exampleLargestCountriesOfTheWorld [
 		e 
 	]).
 
+	^ self openViewInWindow: geoView
+]
+
+{ #category : #'examples - filters' }
+GeoViewExamples class >> exampleObjectsFilterChanged [
+
+	| geoView objects filter colorToAttr processData colors task space |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	
+	"set a general filter"
+	filter := SmockAttributesDisplayFilter new.
+	filter attributes: #(#red #yellow #green).
+	geoView displayFilter: filter.
+	
+	"configure process data to build the filter behavior"
+	colorToAttr := Dictionary newFrom: { Color red -> #red . Color yellow -> #yellow . Color green -> #green }.
+	processData := (geoView getLayer: #GeoObjectsLayer) getProcessDataForClass: GeoCircle.
+	processData displayFilterBlock: [ :k :circle :dShape |  | color |
+		color := circle fillStyle paint.
+		(colorToAttr includesKey: color) ifTrue: [ dShape displayFilter: (SmockAttributesDisplayFilter new addAttribute: (colorToAttr at: color) ) ].
+	].
+	
+	colors := { Color red . Color blue . Color yellow . Color green . Color brown . Color cyan }.
+	
+	"create sample datas"
+	objects := self createGeoCircles: 5000 do:[ :circle | 
+		circle strokeStyle: nil.
+		circle fillStyle: (colors atRandom asSmockFillStyle).
+	].
+	geoView addObjects: objects.
+	
+	"change the filter in the time, and sometimes remove it"
+	task := self createAndStartTask: [
+		(Random new next > 0.5) ifTrue:[
+			filter := SmockAttributesDisplayFilter new.
+			filter attributes: (Array with: (#(#red #yellow #green) atRandom)).
+			geoView displayFilter: filter.	
+		] ifFalse:[
+			geoView displayFilter: nil.	
+		].
+	].
+	task stepDelay: 1 second.
+	
+	space := self openViewInWindow: geoView.
+	
+	"Stop thread when window is closed"
+	space addEventHandler: (BlEventHandler
+			 on: BlSpaceCloseRequest
+			 do: [ :event | task kill ]).
+	
+	^ space
+	
+]
+
+{ #category : #'examples - filters' }
+GeoViewExamples class >> exampleObjectsFilterOnlyRed [
+
+	| geoView objects filter colorToAttr processData colors |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	
+	"set a general filter"
+	filter := SmockAttributesDisplayFilter new.
+	filter attributes: #(#red #yellow #green).
+	geoView displayFilter: filter.
+	
+	"configure process data to build the filter behavior"
+	colorToAttr := Dictionary newFrom: { Color red -> #red }.
+	processData := (geoView getLayer: #GeoObjectsLayer) getProcessDataForClass: GeoCircle.
+	processData displayFilterBlock: [ :k :circle :dShape |  | color |
+		color := circle fillStyle paint.
+		(colorToAttr includesKey: color) ifTrue: [ dShape displayFilter: (SmockAttributesDisplayFilter new addAttribute: (colorToAttr at: color) ) ].
+	].
+	
+	colors := { Color red . Color blue . Color yellow . Color green . Color brown . Color cyan }.
+	
+	"create sample datas"
+	objects := self createGeoCircles: 5000 do:[ :circle | 
+		circle strokeStyle: nil.
+		circle fillStyle: (colors atRandom asSmockFillStyle).
+	].
+	geoView addObjects: objects.
+	
+	^ self openViewInWindow: geoView
+]
+
+{ #category : #'examples - filters' }
+GeoViewExamples class >> exampleObjectsFilterRedYellowAndGreen [
+
+	| geoView objects filter colorToAttr processData colors |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	
+	"set a general filter"
+	filter := SmockAttributesDisplayFilter new.
+	filter attributes: #(#red #yellow #green).
+	geoView displayFilter: filter.
+	
+	"configure process data to build the filter behavior"
+	colorToAttr := Dictionary newFrom: { Color red -> #red . Color yellow -> #yellow . Color green -> #green }.
+	processData := (geoView getLayer: #GeoObjectsLayer) getProcessDataForClass: GeoCircle.
+	processData displayFilterBlock: [ :k :circle :dShape |  | color |
+		color := circle fillStyle paint.
+		(colorToAttr includesKey: color) ifTrue: [ dShape displayFilter: (SmockAttributesDisplayFilter new addAttribute: (colorToAttr at: color) ) ].
+	].
+	
+	colors := { Color red . Color blue . Color yellow . Color green . Color brown . Color cyan }.
+	
+	"create sample datas"
+	objects := self createGeoCircles: 5000 do:[ :circle | 
+		circle strokeStyle: nil.
+		circle fillStyle: (colors atRandom asSmockFillStyle).
+	].
+	geoView addObjects: objects.
+	
 	^ self openViewInWindow: geoView
 ]
 
